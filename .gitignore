@@ -1,0 +1,16 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Test artifacts (when AGENTS.md is referenced in a project that uses it)
+node_modules/
+__pycache__/
+*.pyc
+.target/
+dist/
+build/

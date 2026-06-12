@@ -1,0 +1,70 @@
+---
+description: Split a monolithic code project into a clean module structure without breaking the repo. Use when the user asks to "refactor", "split into modules", "carve up the codebase", "modularize", "clean up the project structure", or reports oversized files.
+globs: ["**/*.{ts,tsx,js,jsx,py,go,rs,java,kt,swift,c,cpp,h,hpp}"]
+---
+
+# Carve Up Codebase (Cursor rule)
+
+> Full procedure in `AGENTS.md` at this repo's root.
+
+## When to apply this rule
+
+- User asks to refactor / carve up the codebase / modularize / split into modules / separate concerns
+- A source file is oversized (>500 lines) with mixed concerns
+- The user wants maintainability, not new features
+- Tests + build + lint pass before starting (the "green baseline")
+
+## When NOT to apply
+
+- Greenfield project → just write modular code from the start
+- Single bug fix → fix directly
+- Adding a feature → not a refactor
+- No tests, no build → ask user to add a smoke test first
+
+## Procedure (5 phases, all mandatory)
+
+### Phase 1 — Baseline
+1. Confirm git repo. If not, ask user to `git init`.
+2. Create worktree: `git worktree add ../<project>-carve -b refactor/<name>`
+3. Run full verification suite (test + build + lint + typecheck). Record result.
+4. Snapshot import graph of target file with `grep` / `rg`.
+
+### Phase 2 — Plan
+1. Read target file end-to-end.
+2. Identify natural seams (clusters of related code).
+3. Propose target module tree.
+4. **Get explicit user approval** before any edits.
+
+### Phase 3 — Apply incrementally
+For each cluster:
+1. Create new module file with extracted code.
+2. Update old file to import from new location (or re-export for back-compat).
+3. Run verification. If green, commit. If red, revert and debug.
+4. After all clusters moved, delete old code blocks, re-verify, commit.
+
+**Key rule:** each commit must leave the project green.
+
+### Phase 4 — Verify and clean up
+1. Re-run full verification suite.
+2. `git diff --stat` from baseline — confirm only intended files changed.
+3. Check for orphaned imports.
+4. Check for circular deps.
+5. Report summary to user.
+
+### Phase 5 — Hand off
+Tell user how to merge worktree back.
+
+## Safety rules (do not skip)
+
+- Green baseline BEFORE any edits
+- One cluster per commit, each green at HEAD
+- Worktree isolation — user's working tree is read-only during refactor
+- No tests = no refactor. Stop and ask for a smoke test.
+- Behaviour-preserving only — no feature adds, no optimisations, no test edits
+
+## Reference material (shared at repo root)
+
+- `../../references/heuristics.md` — per-language module-splitting rules
+- `../../references/verification.md` — per-stack test/build command discovery
+
+For the complete procedure, read `../../AGENTS.md`.
